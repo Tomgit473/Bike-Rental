@@ -18,6 +18,17 @@ import { validate } from "../middleware/validate.js";
 
 const router = express.Router();
 
+const ensureGoogleConfigured = (_req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(501).json({
+      success: false,
+      message: "Google OAuth is not configured on this server."
+    });
+  }
+
+  next();
+};
+
 router.post(
   "/register",
   [
@@ -37,9 +48,14 @@ router.post(
   login
 );
 
-router.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
+router.get(
+  "/google",
+  ensureGoogleConfigured,
+  passport.authenticate("google", { scope: ["profile", "email"], session: false })
+);
 router.get(
   "/google/callback",
+  ensureGoogleConfigured,
   passport.authenticate("google", { session: false, failureRedirect: "/login?oauth=failed" }),
   googleCallback
 );

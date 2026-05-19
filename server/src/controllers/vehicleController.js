@@ -146,15 +146,22 @@ export const getVehicles = asyncHandler(async (req, res) => {
   const lat = Number(latitude);
   const lng = Number(longitude);
   const hasLocation = !Number.isNaN(lat) && !Number.isNaN(lng);
+  const countQuery = { ...query };
 
   if (hasLocation) {
+    const maxDistanceMeters = Number(distance) * 1000;
     query.location = {
       $near: {
         $geometry: {
           type: "Point",
           coordinates: [lng, lat]
         },
-        $maxDistance: Number(distance) * 1000
+        $maxDistance: maxDistanceMeters
+      }
+    };
+    countQuery.location = {
+      $geoWithin: {
+        $centerSphere: [[lng, lat], Number(distance) / 6378.1]
       }
     };
   }
@@ -177,7 +184,7 @@ export const getVehicles = asyncHandler(async (req, res) => {
       .limit(Number(limit))
       .populate("owner", "name avatar trustedScore kycStatus")
       .lean(),
-    Vehicle.countDocuments(query)
+    Vehicle.countDocuments(countQuery)
   ]);
 
   res.json({

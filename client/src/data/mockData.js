@@ -71,7 +71,7 @@ export const featuredVehicles = [
 ];
 
 export const analyticsCards = [
-  { label: "Total earnings", value: "₹8.4L", delta: "+18%" },
+  { label: "Total earnings", value: "INR 8.4L", delta: "+18%" },
   { label: "Bookings", value: "1,284", delta: "+24%" },
   { label: "Vehicles live", value: "342", delta: "+11%" },
   { label: "Avg rating", value: "4.72", delta: "+0.2" }

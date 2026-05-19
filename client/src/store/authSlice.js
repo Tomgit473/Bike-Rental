@@ -42,6 +42,11 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(loadMe.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload.user;
+        localStorage.setItem("rideLoopUser", JSON.stringify(action.payload.user));
+      })
       .addMatcher(
         (action) => ["auth/login/pending", "auth/register/pending", "auth/me/pending"].includes(action.type),
         (state) => {
@@ -59,11 +64,6 @@ const authSlice = createSlice({
           localStorage.setItem("rideLoopUser", JSON.stringify(action.payload.user));
         }
       )
-      .addCase(loadMe.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.user = action.payload.user;
-        localStorage.setItem("rideLoopUser", JSON.stringify(action.payload.user));
-      })
       .addMatcher(
         (action) => ["auth/login/rejected", "auth/register/rejected", "auth/me/rejected"].includes(action.type),
         (state, action) => {
