@@ -1,0 +1,16 @@
+{
+  "name": "RideLoop Bike Rental Marketplace",
+  "short_name": "RideLoop",
+  "description": "Rent verified bikes, scooters, e-bikes, and cars nearby.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f14",
+  "theme_color": "#35f28f",
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
