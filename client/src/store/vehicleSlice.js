@@ -1,9 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { api } from "../services/api.js";
-import { featuredVehicles } from "../data/mockData.js";
 
 const initialState = {
-  items: featuredVehicles,
+  items: [],
   selected: null,
   status: "idle",
   error: null,
@@ -32,13 +31,13 @@ const vehicleSlice = createSlice({
       })
       .addCase(fetchVehicles.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.items = action.payload.vehicles?.length ? action.payload.vehicles : featuredVehicles;
+        state.items = action.payload.vehicles || [];
         state.pagination = action.payload.pagination;
       })
       .addCase(fetchVehicles.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        state.items = featuredVehicles;
+        state.items = [];
       })
       .addCase(fetchVehicle.pending, (state) => {
         state.status = "loading";
@@ -50,7 +49,7 @@ const vehicleSlice = createSlice({
       .addCase(fetchVehicle.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
-        state.selected = featuredVehicles.find((vehicle) => vehicle._id === action.meta.arg) || featuredVehicles[0];
+        state.selected = null;
       });
   }
 });

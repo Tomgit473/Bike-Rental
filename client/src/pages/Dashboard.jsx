@@ -7,16 +7,18 @@ import StatCard from "../components/StatCard.jsx";
 import VehicleCard from "../components/VehicleCard.jsx";
 import { api } from "../services/api.js";
 import { fetchBookings } from "../store/bookingSlice.js";
-import { featuredVehicles } from "../data/mockData.js";
+import { fetchVehicles } from "../store/vehicleSlice.js";
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const bookings = useSelector((state) => state.bookings.items);
+  const vehicles = useSelector((state) => state.vehicles.items);
   const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
     dispatch(fetchBookings());
+    dispatch(fetchVehicles({ limit: 3 }));
     api
       .get("/users/dashboard")
       .then(({ data }) => setDashboard(data.dashboard))
@@ -73,11 +75,17 @@ export default function Dashboard() {
 
       <div className="mt-8">
         <h2 className="mb-4 text-2xl font-extrabold">Recommended rides</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {featuredVehicles.map((vehicle) => (
-            <VehicleCard key={vehicle._id} vehicle={vehicle} />
-          ))}
-        </div>
+        {vehicles.length ? (
+          <div className="grid gap-4 md:grid-cols-3">
+            {vehicles.map((vehicle) => (
+              <VehicleCard key={vehicle._id} vehicle={vehicle} />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-black/10 bg-white p-5 text-sm text-slate-600 dark:border-white/10 dark:bg-white/10 dark:text-slate-300">
+            Explore the marketplace to see recommended rides here.
+          </p>
+        )}
       </div>
     </DashboardShell>
   );

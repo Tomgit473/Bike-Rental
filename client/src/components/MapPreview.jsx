@@ -1,6 +1,17 @@
 import { MapPin, Navigation } from "lucide-react";
 
 export default function MapPreview({ vehicles = [] }) {
+  const withCoordinates = vehicles.filter((vehicle) => vehicle.location?.coordinates?.length === 2);
+  const positionedVehicles = (withCoordinates.length ? withCoordinates : vehicles).slice(0, 6);
+  const lats = positionedVehicles.map((vehicle) => Number(vehicle.location?.coordinates?.[1] || 0));
+  const lngs = positionedVehicles.map((vehicle) => Number(vehicle.location?.coordinates?.[0] || 0));
+  const latMin = Math.min(...lats, 0);
+  const latMax = Math.max(...lats, 1);
+  const lngMin = Math.min(...lngs, 0);
+  const lngMax = Math.max(...lngs, 1);
+  const latSpan = Math.max(latMax - latMin, 0.01);
+  const lngSpan = Math.max(lngMax - lngMin, 0.01);
+
   return (
     <div className="relative min-h-[420px] overflow-hidden rounded-lg border border-black/10 bg-[#d7efe9] shadow-panel dark:border-white/10 dark:bg-[#0d2530]">
       <div className="absolute inset-0 opacity-80">
@@ -13,13 +24,17 @@ export default function MapPreview({ vehicles = [] }) {
         <Navigation size={16} className="text-electric" />
         Nearby
       </div>
-      {vehicles.slice(0, 6).map((vehicle, index) => (
+      {positionedVehicles.map((vehicle, index) => (
         <div
           key={vehicle._id}
           className="absolute z-10 -translate-x-1/2 -translate-y-1/2"
           style={{
-            left: `${24 + ((index * 19) % 58)}%`,
-            top: `${28 + ((index * 23) % 54)}%`
+            left: vehicle.location?.coordinates?.length
+              ? `${12 + (((Number(vehicle.location.coordinates[0]) - lngMin) / lngSpan) * 76)}%`
+              : `${24 + ((index * 19) % 58)}%`,
+            top: vehicle.location?.coordinates?.length
+              ? `${18 + ((1 - ((Number(vehicle.location.coordinates[1]) - latMin) / latSpan)) * 62)}%`
+              : `${28 + ((index * 23) % 54)}%`
           }}
         >
           <div className="group relative">

@@ -3,7 +3,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { API_URL } from "../services/api.js";
+import { API_URL, shouldPreferDemoBackend } from "../services/api.js";
 import { login } from "../store/authSlice.js";
 
 export default function Login() {
@@ -12,6 +12,7 @@ export default function Login() {
   const location = useLocation();
   const status = useSelector((state) => state.auth.status);
   const [form, setForm] = useState({ email: "renter@rideloop.dev", password: "Password123!" });
+  const demoMode = shouldPreferDemoBackend();
 
   const submit = async (event) => {
     event.preventDefault();
@@ -52,9 +53,25 @@ export default function Login() {
             <LogIn size={18} />
             {status === "loading" ? "Signing in..." : "Login"}
           </button>
-          <a href={`${API_URL}/auth/google`} className="btn-secondary">
-            Continue with Google
-          </a>
+          {demoMode ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => toast("Google sign-in needs the live backend OAuth setup.", { icon: "i" })}
+            >
+              Continue with Google
+            </button>
+          ) : (
+            <a href={`${API_URL}/auth/google`} className="btn-secondary">
+              Continue with Google
+            </a>
+          )}
+          {demoMode && (
+            <p className="rounded-lg bg-slate-100 px-4 py-3 text-sm text-slate-600 dark:bg-white/10 dark:text-slate-300">
+              Demo mode is active. Use the prefilled renter account, or switch the email to
+              {" "}`owner@rideloop.dev` or `admin@rideloop.dev` with password `Password123!`.
+            </p>
+          )}
           <div className="flex flex-wrap justify-between gap-3 text-sm">
             <Link to="/forgot-password" className="font-semibold text-electric">Forgot password?</Link>
             <Link to="/register" className="font-semibold text-electric">Create account</Link>

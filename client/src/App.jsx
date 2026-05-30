@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import Layout from "./components/Layout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
+import AuthCallback from "./pages/AuthCallback.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Explore from "./pages/Explore.jsx";
@@ -41,6 +42,7 @@ export default function App() {
           path="/admin"
           element={<ProtectedRoute roles={["admin"]}><AdminPanel /></ProtectedRoute>}
         />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

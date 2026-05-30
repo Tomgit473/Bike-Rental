@@ -1,17 +1,30 @@
 import { Filter, LocateFixed, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-export default function SearchFilters({ onSearch, compact = false }) {
+const defaultFilters = {
+  search: "",
+  category: "",
+  fuelType: "",
+  maxPrice: "",
+  rentalType: "daily",
+  latitude: "",
+  longitude: "",
+  distance: 25
+};
+
+export default function SearchFilters({ onSearch, compact = false, initialValues = {} }) {
   const [filters, setFilters] = useState({
-    search: "",
-    category: "",
-    fuelType: "",
-    maxPrice: "",
-    rentalType: "daily",
-    latitude: "",
-    longitude: "",
-    distance: 25
+    ...defaultFilters,
+    ...initialValues
   });
+
+  useEffect(() => {
+    setFilters((current) => ({
+      ...current,
+      ...defaultFilters,
+      ...initialValues
+    }));
+  }, [initialValues]);
 
   const update = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));

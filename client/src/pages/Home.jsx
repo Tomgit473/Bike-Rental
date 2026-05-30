@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import MapPreview from "../components/MapPreview.jsx";
 import SearchFilters from "../components/SearchFilters.jsx";
 import VehicleCard from "../components/VehicleCard.jsx";
+import LoadingState from "../components/LoadingState.jsx";
 import { fetchVehicles } from "../store/vehicleSlice.js";
 
 const trustItems = [
@@ -85,11 +86,15 @@ export default function Home() {
               <ArrowRight size={16} />
             </Link>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {vehicles.slice(0, 2).map((vehicle) => (
-              <VehicleCard key={vehicle._id} vehicle={vehicle} />
-            ))}
-          </div>
+          {vehicles.length ? (
+            <div className="grid gap-4 md:grid-cols-2">
+              {vehicles.slice(0, 2).map((vehicle) => (
+                <VehicleCard key={vehicle._id} vehicle={vehicle} />
+              ))}
+            </div>
+          ) : (
+            <LoadingState label="Loading popular rentals" />
+          )}
         </div>
         <MapPreview vehicles={vehicles} />
       </section>
@@ -109,11 +114,13 @@ export default function Home() {
       </section>
 
       <section className="section mt-16">
-        <div className="grid gap-4 md:grid-cols-3">
-          {vehicles.slice(0, 3).map((vehicle) => (
-            <VehicleCard key={vehicle._id} vehicle={vehicle} />
-          ))}
-        </div>
+        {vehicles.length ? (
+          <div className="grid gap-4 md:grid-cols-3">
+            {vehicles.slice(0, 3).map((vehicle) => (
+              <VehicleCard key={vehicle._id} vehicle={vehicle} />
+            ))}
+          </div>
+        ) : null}
       </section>
     </>
   );
