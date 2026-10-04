@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { BadgeCheck, Bike, CalendarClock, Fuel, Gauge, MapPin, ShieldCheck, Star } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -53,7 +52,7 @@ export default function VehicleDetails() {
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <div className="grid gap-6">
           <div className="overflow-hidden rounded-lg border border-black/10 bg-slate-200 shadow-panel dark:border-white/10">
-            {image && <img src={image} alt={vehicle.title} className="h-[440px] w-full object-cover" />}
+            {image && <img src={image} alt={vehicle.title} className="h-64 w-full object-cover md:h-[440px]" />}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-4">
@@ -98,7 +97,8 @@ export default function VehicleDetails() {
                 <p className="text-sm text-slate-500">per day</p>
               </div>
               <span className="rounded-lg bg-neon/15 px-3 py-2 text-sm font-bold text-emerald-700 dark:text-neon">
-                {format(new Date(), "MMM d")}
+                {vehicle.availability?.instantBooking === false ? "Request to book" : "Instant booking"}
+                {vehicle.tripsCompleted ? ` · ${vehicle.tripsCompleted} trips` : ""}
               </span>
             </div>
             <div className="mt-5 grid grid-cols-3 gap-2 text-center text-sm">
