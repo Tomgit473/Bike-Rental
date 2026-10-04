@@ -77,6 +77,63 @@ const buildVehiclePayload = (body) => {
   };
 };
 
+const isValidPoint = (location) =>
+  Boolean(location) &&
+  location.type === "Point" &&
+  Array.isArray(location.coordinates) &&
+  location.coordinates.length === 2 &&
+  location.coordinates.every((n) => Number.isFinite(Number(n))) &&
+  Math.abs(Number(location.coordinates[0])) <= 180 &&
+  Math.abs(Number(location.coordinates[1])) <= 90;
+
+const assertCreatePayload = (payload, body) => {
+  const badPricing = ["hour", "day", "week"].filter(
+    (key) => !Number.isFinite(payload.pricing?.[key]) || payload.pricing[key] <= 0
+  );
+  if (badPricing.length) {
+    throw new ApiError(400, `Valid pricing.hour/day/week greater than zero is required (invalid: ${badPricing.join(", ")}).`);
+  }
+  const locationProvided = body.location !== undefined || body.latitude !== undefined || body.longitude !== undefined;
+  if (!isValidPoint(payload.location)) {
+    throw new ApiError(
+      400,
+      locationProvided
+        ? "Location coordinates are invalid. Provide longitude -180..180 and latitude -90..90."
+        : "Location coordinates are required. Provide location {type:'Point',coordinates:[lng,lat]} or latitude/longitude."
+    );
+  }
+};
+
+const buildUpdatePatch = (body, payload) => {
+  const patch = {};
+  const has = (key) => body[key] !== undefined;
+
+  ["title", "description", "category", "brand", "model", "year", "registrationNumber", "pickupAddress", "city", "state", "fuelType", "transmission"].forEach((key) => {
+    if (has(key)) patch[key] = payload[key];
+  });
+  if (body.pricing !== undefined || body.pricePerHour !== undefined || body.pricePerDay !== undefined || body.pricePerWeek !== undefined || body.hour !== undefined || body.day !== undefined || body.week !== undefined) {
+    const bad = ["hour", "day", "week"].filter((k) => !Number.isFinite(payload.pricing?.[k]) || payload.pricing[k] <= 0);
+    if (bad.length) throw new ApiError(400, `Valid pricing.hour/day/week greater than zero is required (invalid: ${bad.join(", ")}).`);
+    patch.pricing = payload.pricing;
+  }
+  if (body.securityDeposit !== undefined) patch.securityDeposit = payload.securityDeposit;
+  if (body.location !== undefined || body.latitude !== undefined || body.longitude !== undefined) {
+    if (!isValidPoint(payload.location)) throw new ApiError(400, "Location coordinates are invalid. Provide longitude -180..180 and latitude -90..90.");
+    patch.location = payload.location;
+  }
+  ["helmetAvailable", "mileageLimitPerDay", "mileageLimit", "seats", "documents", "rules", "features"].forEach((key) => {
+    if (has(key)) {
+      if (key === "mileageLimit") patch.mileageLimitPerDay = payload.mileageLimitPerDay;
+      else patch[key] = payload[key];
+    }
+  });
+  if (body.availability !== undefined || body.instantBooking !== undefined || body.minHours !== undefined || body.maxDays !== undefined || body.advanceNoticeHours !== undefined || body.timezone !== undefined) {
+    patch.availability = payload.availability;
+  }
+
+  return patch;
+};
+
 const assertVehicleAccess = (vehicle, user) => {
   const ownsVehicle = String(vehicle.owner) === String(user._id) || String(vehicle.owner?._id) === String(user._id);
 
@@ -87,6 +144,7 @@ const assertVehicleAccess = (vehicle, user) => {
 
 export const createVehicle = asyncHandler(async (req, res) => {
   const payload = buildVehiclePayload(req.body);
+  assertCreatePayload(payload, req.body);
   const uploadedImages = await uploadFiles(req.files, "ride-loop/vehicles");
 
   const vehicle = await Vehicle.create({
@@ -238,10 +296,9 @@ export const updateVehicle = asyncHandler(async (req, res) => {
   assertVehicleAccess(vehicle, req.user);
 
   const payload = buildVehiclePayload(req.body);
-  Object.entries(payload).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && !(typeof value === "number" && Number.isNaN(value))) {
-      vehicle[key] = value;
-    }
+  const patch = buildUpdatePatch(req.body, payload);
+  Object.entries(patch).forEach(([key, value]) => {
+    vehicle[key] = value;
   });
 
   const uploadedImages = await uploadFiles(req.files, "ride-loop/vehicles");

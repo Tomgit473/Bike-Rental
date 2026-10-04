@@ -159,8 +159,8 @@ export const updateBookingStatus = asyncHandler(async (req, res) => {
   const canUpdate = req.user.role === "admin" || String(booking.owner._id) === String(req.user._id);
   if (!canUpdate) throw new ApiError(403, "Only the owner or admin can update booking status.");
 
-  const allowed = ["confirmed", "active", "completed", "rejected"];
-  if (!allowed.includes(req.body.status)) throw new ApiError(400, "Unsupported booking status.");
+  const allowed = ["confirmed", "active", "rejected"];
+  if (!allowed.includes(req.body.status)) throw new ApiError(400, "Unsupported booking status. Complete returns via PATCH /:id/return.");
 
   booking.status = req.body.status;
   booking.ownerNotes = req.body.ownerNotes ?? booking.ownerNotes;
@@ -234,6 +234,12 @@ export const requestExtension = asyncHandler(async (req, res) => {
   }
 
   const requestedEndDate = new Date(req.body.requestedEndDate);
+  if (!["pending", "confirmed", "active"].includes(booking.status)) {
+    throw new ApiError(400, `Cannot extend a ${booking.status} booking.`);
+  }
+  if (!(requestedEndDate > new Date(booking.endDate))) {
+    throw new ApiError(400, "Requested end date must be after the current end date.");
+  }
 
   await assertNoBookingOverlap({
     vehicleId: booking.vehicle._id,
@@ -268,6 +274,13 @@ export const completeReturn = asyncHandler(async (req, res) => {
 
   const canComplete = req.user.role === "admin" || String(booking.owner._id) === String(req.user._id);
   if (!canComplete) throw new ApiError(403, "Only the owner or admin can complete the return.");
+
+  if (["completed", "cancelled", "rejected"].includes(booking.status)) {
+    throw new ApiError(400, `Booking is already ${booking.status}.`);
+  }
+  if (booking.paymentStatus !== "paid") {
+    throw new ApiError(400, "Payment must be captured before completing the return.");
+  }
 
   const actualReturnDate = req.body.actualReturnDate || new Date();
   const lateFee = calculateLateFee({
